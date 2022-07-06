@@ -1,53 +1,30 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
+	"os"
+	"strings"
+
+	"github.com/labstack/echo/v4"
+	"github.com/lsc5066/scrapper"
 )
 
-type request struct {
-	url    string
-	status string
+const fileName string = "jobs.csv"
+
+func handleHome(c echo.Context) error {
+	return c.File("home.html")
 }
 
-var errRequestFailed = errors.New("Request failed")
+func handleScrape(c echo.Context) error {
+	defer os.Remove("fileName")
+	term := strings.ToLower(scrapper.CleanString(c.FormValue("term")))
+	scrapper.Scrape(term)
+	return c.Attachment("fileName", "fileName")
+}
 
 func main() {
-	results := make(map[string]string)
-	c := make(chan request)
-	urls := []string{
-		"https://www.airbnb.com/",
-		"https://www.google.com/",
-		"https://www.amazon.com/",
-		"https://www.reddit.com/",
-		"https://www.google.com/",
-		"https://soundcloud.com/",
-		"https://www.facebook.com/",
-		"https://www.instagram.com/",
-		"https://academy.nomadcoders.co/",
-	}
-	for _, url := range urls {
-		go hitURL(url, c)
-	}
+	e := echo.New()
+	e.GET("/", handleHome)
+	e.POST("/scrape", handleScrape)
+	e.Logger.Fatal(e.Start(":1323"))
 
-	for i := 0; i < len(urls); i++ {
-		result := <-c
-		results[result.url] = result.status
-	}
-
-	for url, status := range results {
-		fmt.Println(url, status)
-	}
-
-}
-
-func hitURL(url string, c chan<- request) {
-	fmt.Println("Checking:", url)
-	resp, err := http.Get(url)
-	status := "OK"
-	if err != nil || resp.StatusCode >= 400 {
-		status = "FAILED"
-	}
-	c <- request{url: url, status: status}
 }
