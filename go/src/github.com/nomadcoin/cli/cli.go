@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/nomadcoders/nomadcoin/explorer"
 	"github.com/nomadcoders/nomadcoin/rest"
@@ -16,7 +17,7 @@ func usage() {
 	fmt.Printf("-port1: Set the PORT of the rest API server\n\n")
 	fmt.Printf("-port2: Set the PORT of the html server\n\n")
 	fmt.Printf("-mode: Choose between 'html', 'rest' and 'both')\n\n")
-	os.Exit(0)
+	runtime.Goexit()
 }
 
 func Start() {
